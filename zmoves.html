@@ -1,0 +1,279 @@
+<html>
+    <head>
+        <style>
+             body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+            }
+            
+            .container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin: 20px;
+            }
+            
+            .box, .middle-box {
+                border: 2px solid #FF6F6F;
+                background-color: #FFA9A9;
+                width: 300px;
+                padding: 10px;
+                margin: 10px;
+            }
+            
+            .header {
+                background-color: #D94D4D;
+                color: white;
+                text-align: center;
+                padding: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .content p {
+                background-color: #B35D5D;
+                padding: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .button-group {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            button {
+                background-color: #E7E7E7;
+                border: none;
+                padding: 10px;
+                cursor: pointer;
+            }
+            
+            .middle-box {
+                background-color: #4866B3;
+                padding: 10px;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+         <div id="selection">
+            <h2>select moves</h2>
+            <h3>player1</h3>
+            <button onclick="player1.addmove('strike',300,'attack',0,5,3,0,'none');console.log(player1.moves)">strike</button>
+            <button onclick="player1.addmove('replenish',0,'spell',0,1,5,500,'none');console.log(player1.moves)">replenish</button>
+             <button onclick="player1.addmove('blast cannon',500,'attack',0,1,5,0,'none');console.log(player1.moves)">blast cannon</button>
+             <button onclick="player1.addmove('forcefield',0,'spell',2,1,2,0,'guard');console.log(player1.moves)">force field</button>
+             <button onclick="player1.addmove('devilforce',500,'attack',0,2,3,-300,'none');console.log(player1.moves)">devil force</button>
+              <button onclick="player1.addmove('power up',0,'spell',5,2,1,0,'player power');console.log(player1.moves)">power up</button>
+            <h3>player2</h3>
+             <button onclick="player2.addmove('strike',300,'attack',0,5,3,0,'none');console.log(player2.moves)">strike</button>
+            <button onclick="player2.addmove('replenish',0,'spell',0,1,5,500,'none');console.log(player2.moves)">replenish</button>
+             <button onclick="player2.addmove('blast cannon',500,'attack',0,1,5,0,'none');console.log(player2.moves)">blast cannon</button>
+             <button onclick="player2.addmove('forcefield',0,'spell',2,1,2,0,'guard');console.log(player2.moves)">force field</button>
+             <button onclick="player2.addmove('devilforce',500,'attack',0,2,3,-300,'none');console.log(player2.moves)">devil force</button>
+              <button onclick="player2.addmove('power up',0,'spell',5,2,1,0,'player power');console.log(player2.moves)">power up</button>
+            <br></br>
+            <button onclick="gamestart()">start</button>
+        </div>
+         <div class="container">
+            <div class="box">
+                <div class="header" id="enemy-health"></div>
+                <div class="content">
+                    <p id="player2_data">Content</p>
+                    <div class="button-group">
+                        <button id='enemy-move1'></button>
+                        <button id='enemy-move2'></button>
+                        <button id='enemy-move3'></button>
+                        <button id='enemy-move4'></button>
+                    </div>
+                </div>
+            </div>
+            <div> <button onclick="playmove2(attack)">attack</button> <button onclick="playmove2(defend)">defend</button></div>
+            <div><p id="terminal"></p></div>
+            <div class="middle-box">
+                <p id="info data"></p>
+            </div>
+            <div class="box">
+                <div class="header" id="player-health"></div>
+                <div class="content">
+                    <p id="player1_data">Content</p>
+                    <div class="button-group">
+                        <button id='move1'></button>
+                        <button id='move2'></button>
+                        <button id='move3'></button>
+                        <button id='move4'></button>
+                    </div>
+                </div>
+            </div>
+             <div> <button onclick="playmove(attack)">attack</button> <button onclick="playmove(defend)">defend</button></div>
+        </div>
+      <script>
+            var info_data = document.getElementById("info data");
+            var p1_data = document.getElementById("player1_data");
+             var p2_data = document.getElementById("player2_data");
+            var player_health = document.getElementById('player-health');
+            var enemy_health = document.getElementById('enemy-health');
+            var terminal = document.getElementById("terminal");
+            var damage;
+            var playstate = 1;
+          
+          class Player{
+              constructor(name,hp,weight,status,moves){
+                  this.name = name;
+                  this.hp = hp;
+                  this.weight = weight;
+                  this.status = status;
+                  this.moves = []
+              }
+              addmove(name,power,type,turns,dp,weight,heal,effects){
+                  const newmove = new Move(name,power,type,turns,dp,weight,heal,effects);
+                  this.moves.push(newmove);
+              }
+              calculate_weight(arr){
+                  for (let i =0; i >arr.length; i++){
+                      this.weight+=arr[i].weight;
+                  }
+                  return this.weight;
+              }
+          };
+        
+          class Move{
+            constructor(name,power,type,turns,dp,weight,heal,effects){
+                  this.name = name;
+                  this.power = power;
+                  this.type = type
+                  this.turns = turns
+                  this.dp = dp
+                  this.weight = weight
+                  this.heal = heal
+                  this.effects = effects
+              }
+            use(attacker,defender){
+                 if (this.dp >= 1){
+                      info_data.innerHTML += ("\n"+attacker.name+" used " +this.name);
+                      defender.hp -=  this.damage_calc(attacker,defender);
+                      attacker.hp += this.heal;
+                      this.effect(attacker,defender);
+                     this.dp -=1;
+                 }
+                 else{info_data.innerHTML+=("no dp")}
+              }
+            damage_calc(attacker,defender){
+                 damage = this.power;
+                if (defender.status == "guard"){
+                    damage/=2;
+               }
+              
+                if (attacker.status == "player power"){
+                    damage +=100;
+                      
+                }
+                info_data.innerHTML+=(damage +" damage/// ")
+                return damage;   
+                 
+            }
+              effect(attacker,defender){
+              if (this.turns >=0){
+                   if (this.effects=="guard"){
+                        attacker.status="guard";
+                        info_data.innerHTML+=(attacker.name+" guard"+this.turns+" turns left/// ");
+                    }
+
+                    if (this.effects=="player power"){
+                        attacker.status="player power";
+                        info_data.innerHTML +=(attacker.name+" power"+this.turns+" turns left/// ");
+                    }
+                    
+                    this.turns -=1
+                  }
+               
+                else{attacker.status="none";info_data.innerHTML+=("no effect/// ");}
+    
+              }
+          }
+          const player1 = new Player("player1",1500,0,"none",[]);
+          const player2 = new Player("player2",1500,0,"none",[]);
+          const attack = new Move("attack",100,"attack",0,50,0,0,"none")
+          const defend = new Move("defend",0,"spell",0,50,0,0,"guard")
+
+
+            function playmove(move){
+                info_data.innerHTML = " "
+              if (playstate == 1){
+                    move.use(player1,player2);
+                  player_health.innerHTML = player1.hp;
+                enemy_health.innerHTML = player2.hp;
+                  p1_data.innerHTML = player1.status;
+               p2_data.innerHTML = player2.status;
+                  playstate = 2;
+              }
+                else{
+                    info_data.innerHTML = ("player 2 turn")
+                }
+                  let rand = Math.floor(Math.random()*5) 
+                playmove2(player2.moves[rand])
+            
+            }
+           function playmove2(move){
+              if (playstate == 2){
+                   move.use(player2,player1);
+                 player_health.innerHTML = player1.hp;
+                enemy_health.innerHTML = player2.hp;
+                 p1_data.innerHTML = player1.status;
+               p2_data.innerHTML = player2.status;
+                  playstate = 1;
+              }
+               else {
+                   info_data.innerHTML = ("player 1 turn")
+               }
+           }
+            document.getElementById('move1').onclick = function() {
+                playmove(player1.moves[0])
+            }
+            document.getElementById('move2').onclick = function() {
+                playmove(player1.moves[1])
+            }
+            document.getElementById('move3').onclick = function() {
+                playmove(player1.moves[2])
+            }
+            document.getElementById('move4').onclick = function() {
+                playmove(player1.moves[3])
+            }
+
+              document.getElementById('enemy-move1').onclick = function() {
+                playmove2(player2.moves[0])
+            }
+            document.getElementById('enemy-move2').onclick = function() {
+                playmove2(player2.moves[1])
+            }
+            document.getElementById('enemy-move3').onclick = function() {
+                playmove2(player2.moves[2])
+            }
+            document.getElementById('enemy-move4').onclick = function() {
+                playmove2(player2.moves[3])
+            }
+
+           function gamestart(){
+                //terminal.innerHTML = moves
+                info_data.innerHTML = "game started /// player1 pick move///";
+                player_health.innerHTML = player1.hp;
+                enemy_health.innerHTML = player2.hp;
+               p1_data.innerHTML = player1.status;
+               p2_data.innerHTML = player2.status;
+                document.getElementById('move1').innerHTML = player1.moves[0].name+player1.moves[0].dp;
+                document.getElementById('move2').innerHTML = player1.moves[1].name+player1.moves[1].dp;
+                document.getElementById('move3').innerHTML = player1.moves[2].name+player1.moves[2].dp;
+                document.getElementById('move4').innerHTML = player1.moves[3].name+player1.moves[3].dp;
+
+                document.getElementById('enemy-move1').innerHTML = player2.moves[0].name;
+                document.getElementById('enemy-move2').innerHTML = player2.moves[1].name;
+                document.getElementById('enemy-move3').innerHTML = player2.moves[2].name;
+                document.getElementById('enemy-move4').innerHTML = player2.moves[3].name;
+               player2.addmove("attack",100,"attack",0,50,0,0,"none");
+               player2.addmove("defend",0,"spell",0,50,0,0,"guard");
+                console.log("gamestart")
+            }
+          
+      </script>
+    </body>
+</html>
